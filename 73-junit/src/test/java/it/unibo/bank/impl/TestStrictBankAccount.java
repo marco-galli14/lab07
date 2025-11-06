@@ -5,13 +5,20 @@ import it.unibo.bank.api.BankAccount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Test class for the {@link StrictBankAccount} class.
  */
 class TestStrictBankAccount {
 
+    private static final int AMOUNT = 100;
+    public static final double TRANSACTION_FEE = 0.1;
+    public static final double MANAGEMENT_FEE = 5;
     // Create a new AccountHolder and a StrictBankAccount for it each time tests are executed.
     private AccountHolder mRossi;
     private BankAccount bankAccount;
@@ -21,7 +28,8 @@ class TestStrictBankAccount {
      */
     @BeforeEach
     public void setUp() {
-        fail("To be implemented");
+        this.mRossi = new AccountHolder("Mario", "Rossi", 1);
+        this.bankAccount = new StrictBankAccount(mRossi, 0.0);
     }
 
     /**
@@ -29,7 +37,9 @@ class TestStrictBankAccount {
      */
     @Test
     public void testInitialization() {
-        fail("To be implemented");
+        assertEquals(0, bankAccount.getTransactionsCount());
+        assertEquals(0.0,bankAccount.getBalance());
+        assertEquals(mRossi, bankAccount.getAccountHolder());
     }
 
     /**
@@ -37,7 +47,18 @@ class TestStrictBankAccount {
      */
     @Test
     public void testManagementFees() {
-        fail("To be implemented");
+        int i = bankAccount.getTransactionsCount();
+        double tot = bankAccount.getBalance();
+
+        bankAccount.deposit(mRossi.getUserID(), AMOUNT);
+        i++;
+        tot += AMOUNT;
+        assertEquals(tot, bankAccount.getBalance());
+        assertEquals(i, bankAccount.getTransactionsCount());
+
+        bankAccount.chargeManagementFees(mRossi.getUserID());
+        tot -= (i * TRANSACTION_FEE) + MANAGEMENT_FEE;
+        assertEquals(tot, bankAccount.getBalance());
     }
 
     /**
@@ -45,7 +66,16 @@ class TestStrictBankAccount {
      */
     @Test
     public void testNegativeWithdraw() {
-        fail("To be implemented");
+        double tot = bankAccount.getBalance();
+        int dim = -AMOUNT;
+        try {
+            bankAccount.withdraw(mRossi.getUserID(),dim);
+            Assertions.fail("The withdrawal should had been blocked 'cause it's impossible to withdraw a negative amount");
+        } catch (IllegalArgumentException e) {
+            assertEquals(tot, bankAccount.getBalance());
+            assertNotNull(e.getMessage());
+            assertFalse(e.getMessage().isEmpty());
+        }
     }
 
     /**
@@ -53,6 +83,15 @@ class TestStrictBankAccount {
      */
     @Test
     public void testWithdrawingTooMuch() {
-        fail("To be implemented");
+        double tot = bankAccount.getBalance();
+        double dim = tot + AMOUNT;
+        try {
+            bankAccount.withdraw(mRossi.getUserID(),dim);
+            Assertions.fail("The withdrawal should had been blocked 'cause it's impossible to withdraw more than the account balance");
+        } catch (IllegalArgumentException e) {
+            assertEquals(tot, bankAccount.getBalance());
+            assertNotNull(e.getMessage());
+            assertFalse(e.getMessage().isEmpty());
+        }
     }
 }
